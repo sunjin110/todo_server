@@ -6,6 +6,12 @@ pub mod error {
     pub enum AlmaError {
         #[error("Failed to render HTML")]
         AskamaError(#[from] askama::Error),
+
+        #[error("Failed to get connection")]
+        ConnectionPoolError(#[from] r2d2::Error),
+
+        #[error("Failed SQL execution")]
+        SQLiteError(#[from] rusqlite::Error),
     }
     
     // actix_web:ResposenErrorをAlmaErrorに実装する

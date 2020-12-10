@@ -4,7 +4,7 @@ extern crate todo_server;
 use todo_server::common::error::AlmaError;
 use todo_server::repository::template::{TodoEntry, IndexTemplate, render};
 
-use actix_web::{get, App, HttpResponse, HttpServer};
+use actix_web::{get, App, HttpResponse, HttpServer, web};
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::params;
@@ -36,17 +36,27 @@ async fn main() -> Result<(), actix_web::Error> {
 }
 
 #[get("/")]
-async fn index() -> Result<HttpResponse, AlmaError> {
-    let mut entries = Vec::new();
-    entries.push(TodoEntry{
-        id: 1,
-        text: "First".to_string(),
-    });
+async fn index(db: web::Data<Pool<SqliteConnectionManager>>) -> Result<HttpResponse, AlmaError> {
 
-    entries.push(TodoEntry{
-        id: 2,
-        text: "Second".to_string(),
-    });
+    // db connect
+    let conn = db.get()?;
+
+    // SQL文をPrepared Statementに変換
+    let mut statement = conn.prepare("SELECT id, text FROM todo")?;
+
+    // Prepared StatementとなっているSQL文を実行し、結果をTodoEntryに変換する
+    let rows = statement.query_map(params![], |row| {
+        let id = row.get(0)?;
+        let text = row.get(1)?;
+        Ok(TodoEntry{id, text})
+    })?;
+
+
+    let mut entries = Vec::new();
+    for row in rows {
+        entries.push(row?);
+    }
+
 
     let html = IndexTemplate{entries};
     let response_body = render(html)?;

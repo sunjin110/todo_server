@@ -38,7 +38,7 @@ pub mod router {
     }
 
     #[post("/add")]
-    async fn add_todo(
+    pub async fn add_todo(
         params: web::Form<AddParams>,
         db: web::Data<r2d2::Pool<SqliteConnectionManager>>,
     ) -> Result<HttpResponse, AlmaError> {
@@ -50,7 +50,7 @@ pub mod router {
     }
 
     #[post("/delete")]
-    async fn delete_todo(params: web::Form<DeleteParams>, db: web::Data<r2d2::Pool<SqliteConnectionManager>>) -> Result<HttpResponse, AlmaError> {
+    pub async fn delete_todo(params: web::Form<DeleteParams>, db: web::Data<r2d2::Pool<SqliteConnectionManager>>) -> Result<HttpResponse, AlmaError> {
         let conn = db.get()?;
         conn.execute("DELETE FROM todo WHERE id=?", &[params.id])?;
         Ok(HttpResponse::SeeOther().header(header::LOCATION, "/").finish())

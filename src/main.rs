@@ -26,6 +26,8 @@ async fn main() -> Result<(), actix_web::Error> {
         params![],
     ).expect("Failed to create a table `todo`");
 
+    println!("todo server start -> localhost:7777");
+
     // server
     HttpServer::new(move || App::new().service(router::index).data(pool.clone()))
         .bind("127.0.0.1:7777")?
